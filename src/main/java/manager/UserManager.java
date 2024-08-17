@@ -9,22 +9,26 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class UserManager {
-    private Connection connection;
+    private final Connection connection;
     public UserManager() {
         connection = DBConnectionProvider.getInstance().getConnection();
     }
 
     public void addUser(User user) throws SQLException {
-        PreparedStatement preparedStatement =
-                connection.prepareStatement("insert into user (name,surname,email,pasword) values (?,?,?,?), Statement.RETURN_GENERATED_KEYS");
-                preparedStatement.setString(1, user.getName());
-                preparedStatement.setString(2, user.getSurname());
-                preparedStatement.setString(3, user.getEmail());
-                preparedStatement.setString(4, user.getPassword());
+        PreparedStatement preparedStatement = connection.prepareStatement("insert into user (name,surname,email,password) values (?,?,?,?)", PreparedStatement.RETURN_GENERATED_KEYS);
+        preparedStatement.setString(1, user.getName());
+        preparedStatement.setString(2, user.getSurname());
+        preparedStatement.setString(3, user.getEmail());
+        preparedStatement.setString(4, user.getPassword());
 
+//        es toxi masin moracel einq
+        preparedStatement.executeUpdate();
+
+
+        int id;
         ResultSet generatedKeys = preparedStatement.getGeneratedKeys();
         if (generatedKeys.next()) {
-            int id = generatedKeys.getInt(1);
+            id = generatedKeys.getInt(1);
             user.setId(id);
         }
     }
@@ -39,7 +43,7 @@ public class UserManager {
             user.setName(resultSet.getString("name"));
             user.setSurname(resultSet.getString("surname"));
             user.setEmail(resultSet.getString("email"));
-            user.setPassword(resultSet.getString("pasword"));
+            user.setPassword(resultSet.getString("password"));
             users.add(user);
         }
         return users;
@@ -49,5 +53,9 @@ public class UserManager {
         PreparedStatement ps = connection.prepareStatement("DELETE FROM user WHERE id = ?");
         ps.setInt(1, id);
         ps.executeUpdate();
+    }
+
+    public void printUsers() throws SQLException {
+        getAllUsers().forEach(System.out::println);
     }
 }
